@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -54,6 +55,7 @@ private val steps = listOf(
 
 class MainActivity: ComponentActivity(){ override fun onCreate(b:Bundle?){super.onCreate(b);setContent{App()}} }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable fun App(){
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl){
         val ctx=LocalContext.current
@@ -64,13 +66,13 @@ class MainActivity: ComponentActivity(){ override fun onCreate(b:Bundle?){super.
         MaterialTheme(colorScheme=lightColorScheme(primary=Color(0xFF6750A4))){
             Scaffold(topBar={TopAppBar(title={Column{Text("בונים אפליקציה עם GPT",fontWeight=FontWeight.Bold);Text("מדריך למתחילים • $count/5",style=MaterialTheme.typography.labelMedium)}})},bottomBar={
                 Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(10.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                    OutlinedButton({if(selected>0)selected--},enabled=selected>0,Modifier.weight(1f)){Icon(Icons.Default.ArrowForward,null);Text("הקודם")}
-                    Button({if(selected<4)selected++},enabled=selected<4,Modifier.weight(1f)){Text(if(selected==4)"סיימנו" else "הבא");Icon(Icons.Default.ArrowBack,null)}
+                    OutlinedButton(onClick={if(selected>0)selected--},enabled=selected>0,modifier=Modifier.weight(1f)){Icon(Icons.Default.ArrowForward,null);Text("הקודם")}
+                    Button(onClick={if(selected<4)selected++},enabled=selected<4,modifier=Modifier.weight(1f)){Text(if(selected==4)"סיימנו" else "הבא");Icon(Icons.Default.ArrowBack,null)}
                 }
             }){pad->LazyColumn(Modifier.fillMaxSize().padding(pad).padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-                item{ElevatedCard{Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){Text("מ-0 ל-APK",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold);Text("חמישה צעדים פשוטים לבניית אפליקציה");LinearProgressIndicator({count/5f},Modifier.fillMaxWidth());if(count>0)TextButton({done.indices.forEach{done[it]=false;prefs.edit().putBoolean("s$it",false).apply()}}){Icon(Icons.Default.Replay,null);Text("איפוס")}}}}
+                item{ElevatedCard{Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){Text("מ-0 ל-APK",style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold);Text("חמישה צעדים פשוטים לבניית אפליקציה");LinearProgressIndicator(progress={count/5f},modifier=Modifier.fillMaxWidth());if(count>0)TextButton({done.indices.forEach{done[it]=false;prefs.edit().putBoolean("s$it",false).apply()}}){Icon(Icons.Default.Replay,null);Text("איפוס")}}}}
                 item{Text("מסלול ההדרכה",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold)}
-                items(steps.size){i->Card({selected=i},Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(if(i==selected)MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant)){Row(Modifier.padding(13.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(done[i],{done[i]=it;prefs.edit().putBoolean("s$i",it).apply()});Column{Text("${i+1}. ${steps[i].title}",fontWeight=FontWeight.Bold);Text(steps[i].time)}}}}
+                items(steps.size){i->Card(onClick={selected=i},modifier=Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=if(i==selected)MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant)){Row(Modifier.padding(13.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(checked=done[i],onCheckedChange={done[i]=it;prefs.edit().putBoolean("s$i",it).apply()});Column{Text("${i+1}. ${steps[i].title}",fontWeight=FontWeight.Bold);Text(steps[i].time)}}}}
                 item{StepDetail(steps[selected],done[selected],{v->done[selected]=v;prefs.edit().putBoolean("s$selected",v).apply()})}
             }}
         }
@@ -84,6 +86,6 @@ class MainActivity: ComponentActivity(){ override fun onCreate(b:Bundle?){super.
         step.details.forEach{Row(verticalAlignment=Alignment.Top){Icon(Icons.Default.Check,null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.primary);Spacer(Modifier.width(8.dp));Text(it)}}
         if(step.url!=null)FilledTonalButton({ctx.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(step.url)))},Modifier.fillMaxWidth()){Icon(Icons.Default.OpenInNew,null);Spacer(Modifier.width(6.dp));Text(step.label!!)}
         if(step.prompt)Card{Column(Modifier.padding(14.dp)){Text(prompt,maxLines=10,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.bodySmall);Button({clip.setText(AnnotatedString(prompt));Toast.makeText(ctx,"הפרומט הועתק",Toast.LENGTH_SHORT).show()},Modifier.fillMaxWidth()){Icon(Icons.Default.ContentCopy,null);Spacer(Modifier.width(6.dp));Text("העתק פרומט מוכן")}}}
-        Row(verticalAlignment=Alignment.CenterVertically){Checkbox(completed,onDone);Text(if(completed)"הצעד הושלם" else "סמן כבוצע",fontWeight=FontWeight.SemiBold)}
+        Row(verticalAlignment=Alignment.CenterVertically){Checkbox(checked=completed,onCheckedChange=onDone);Text(if(completed)"הצעד הושלם" else "סמן כבוצע",fontWeight=FontWeight.SemiBold)}
     }}
 }
